@@ -1,17 +1,9 @@
 import React from "react"
-import Sidebar from "./components/Sidebar"
-import Editor from "./components/Editor"
-import { data } from "./data"
 import Split from "react-split"
 import { nanoid } from "nanoid"
-
-/**
- * Challenge: Spend 10-20+ minutes reading through the code
- * and trying to understand how it's currently working. Spend
- * as much time as you need to feel confident that you 
- * understand the existing code (although you don't need
- * to fully understand everything to move on)
- */
+// import { data } from "./data"
+import Sidebar from "./components/Sidebar"
+import Editor from "./components/Editor"
 
 function App() {
   const [notes, setNotes] = React.useState([])
@@ -24,16 +16,9 @@ function App() {
       id: nanoid(),
       body: "# Type your markdown note's title here"
     }
-    setNotes(prevNotes => [newNote, ...prevNotes])
-    setCurrentNoteId(newNote.id)
-  }
 
-  function updateNote(text) {
-    setNotes(oldNotes => oldNotes.map(oldNote => {
-      return oldNote.id === currentNoteId
-        ? { ...oldNote, body: text }
-        : oldNote
-    }))
+    setNotes(prevNotes => [...prevNotes, newNote])
+    setCurrentNoteId(newNote.id)
   }
 
   function findCurrentNote() {
@@ -42,21 +27,31 @@ function App() {
     }) || notes[0]
   }
 
+  function updateNote(text) {
+    setNotes(oldNotes => {
+      return oldNotes.map(oldNote => {
+        return oldNote.id === currentNoteId
+          ? { ...oldNote, body: text }
+          : oldNote
+      })
+    })
+  }
+
   return (
     <main>
       {
         notes.length > 0
           ?
           <Split
-            sizes={[30, 70]}
+            sizes={[20, 80]}
             direction="horizontal"
             className="split"
           >
             <Sidebar
+              newNote={createNewNote}
               notes={notes}
               currentNote={findCurrentNote()}
               setCurrentNoteId={setCurrentNoteId}
-              newNote={createNewNote}
             />
             {
               currentNoteId &&
@@ -74,10 +69,9 @@ function App() {
               className="first-note"
               onClick={createNewNote}
             >
-              Create one now
+              Create New Note
             </button>
           </div>
-
       }
     </main>
   )
