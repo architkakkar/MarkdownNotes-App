@@ -1,8 +1,10 @@
 import React from "react"
 
 export default function Sidebar(props) {
+    // Map over the notes array to create a list of note elements
     const noteElements = props.notes.map((note, index) => (
         <div key={note.id}>
+            {/* Div for each note, with a class indicating if it's the selected note */}
             <div
                 className={`title ${note.id === props.currentNote.id ? "selected-note" : ""}`}
                 onClick={() => props.setCurrentNoteId(note.id)}
@@ -12,6 +14,7 @@ export default function Sidebar(props) {
         </div>
     ))
 
+    // Render the Sidebar component
     return (
         <section className="pane sidebar">
             <div className="sidebar-header">
