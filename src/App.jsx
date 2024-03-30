@@ -35,8 +35,16 @@ function App() {
     }) || notes[0]
   }
 
+  function deleteNote(event, noteId) {
+    event.stopPropagation()
+
+    setNotes(oldNotes => {
+      return oldNotes.filter(oldNote => oldNote.id != noteId)
+    })
+  }
+
   // Update the body of the current note
-  // Move the Most recent edit note to the top in sidebar.
+  // Put the most recently-modified note at the top
   function updateNote(text) {
     setNotes(oldNotes => {
       const newArray = []
@@ -70,6 +78,7 @@ function App() {
               notes={notes}
               currentNote={findCurrentNote()}
               setCurrentNoteId={setCurrentNoteId}
+              deleteNote={deleteNote}
             />
             {
               currentNoteId &&
