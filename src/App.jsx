@@ -36,13 +36,19 @@ function App() {
   }
 
   // Update the body of the current note
+  // Move the Most recent edit note to the top in sidebar.
   function updateNote(text) {
     setNotes(oldNotes => {
-      return oldNotes.map(oldNote => {
-        return oldNote.id === currentNoteId
-          ? { ...oldNote, body: text }
-          : oldNote
+      const newArray = []
+
+      oldNotes.forEach(oldNote => {
+        if (oldNote.id === currentNoteId)
+          newArray.unshift({ ...oldNote, body: text })
+        else
+          newArray.push(oldNote)
       })
+
+      return newArray
     })
   }
 
