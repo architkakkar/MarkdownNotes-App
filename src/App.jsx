@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 import Split from "react-split"
 import { nanoid } from "nanoid"
-// import { data } from "./data"
 import Sidebar from "./components/Sidebar"
 import Editor from "./components/Editor"
 
@@ -9,8 +8,12 @@ function App() {
   // Initialize notes from localStorage if exist or empty array
   // Using React Lazy State Initialization to not initialize everytime App Renders.
   const [notes, setNotes] = useState(() => JSON.parse(localStorage.getItem("notes")) || [])
-  // Set current note ID to first note's ID or empty string
-  const [currentNoteId, setCurrentNoteId] = useState((notes[0] && notes[0].id) || "")
+
+  // Set current note ID to first note's ID or empty string (using optional chaining)
+  const [currentNoteId, setCurrentNoteId] = useState(notes[0]?.id || "")
+
+  // Find the current note by ID or return the first note 
+  const currentNote = notes.find(note => note.id === currentNoteId) || notes[0]
 
   // Update localStorage when notes state change
   useEffect(() => {
@@ -26,13 +29,6 @@ function App() {
 
     setNotes(prevNotes => [...prevNotes, newNote])
     setCurrentNoteId(newNote.id)
-  }
-
-  // Find the current note by ID or return the first note
-  function findCurrentNote() {
-    return notes.find(note => {
-      return note.id === currentNoteId
-    }) || notes[0]
   }
 
   function deleteNote(event, noteId) {
@@ -76,7 +72,7 @@ function App() {
             <Sidebar
               newNote={createNewNote}
               notes={notes}
-              currentNote={findCurrentNote()}
+              currentNote={currentNote}
               setCurrentNoteId={setCurrentNoteId}
               deleteNote={deleteNote}
             />
@@ -84,7 +80,7 @@ function App() {
               currentNoteId &&
               notes.length > 0 &&
               <Editor
-                currentNote={findCurrentNote()}
+                currentNote={currentNote}
                 updateNote={updateNote}
               />
             }
