@@ -3,7 +3,7 @@ import Showdown from "showdown"
 import ReactMde from "react-mde"
 import 'react-mde/lib/styles/css/react-mde-all.css'
 
-export default function Editor({ currentNote, updateNote }) {
+export default function Editor({ tempNoteText, setTempNoteText }) {
     // State to manage the selected tab in the ReactMde component
     const [selectedTab, setSelectedTab] = useState("write")
 
@@ -19,8 +19,8 @@ export default function Editor({ currentNote, updateNote }) {
     return (
         <section className="pane editor">
             <ReactMde
-                value={currentNote.body}
-                onChange={updateNote}
+                value={tempNoteText}
+                onChange={setTempNoteText}
                 selectedTab={selectedTab}
                 onTabChange={setSelectedTab}
                 generateMarkdownPreview={(markdown) =>

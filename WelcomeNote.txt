@@ -1,0 +1,17 @@
+# Welcome to Markdown Notes App!
+
+## Introduction
+
+Welcome to the **Markdown Notes App**, your go-to tool for managing and organizing your notes in Markdown format. This app is designed to make it easy for you to create, edit, and store your notes in a clean, structured format that's perfect for documentation, project planning, and more.
+
+## Getting Started
+
+To get started, simply click on the "+" button to create a new note. You can then start writing your note in Markdown format.
+
+## Reach out to me
+
+[Github](https://github.com/architkakkar/) | [Twitter X](https://x.com/_architkakkar)
+
+## Happy Note-taking!
+
+We hope you enjoy using the Markdown Notes App. Happy note-taking!

@@ -1,59 +1,91 @@
 import React, { useEffect, useState } from "react"
+// External Packages
 import Split from "react-split"
-import { nanoid } from "nanoid"
+import { addDoc, deleteDoc, doc, onSnapshot, setDoc } from "firebase/firestore"
+// Other Files.
+import { notesCollection, db } from "./firebase"
+// React Components
 import Sidebar from "./components/Sidebar"
 import Editor from "./components/Editor"
 
 function App() {
-  // Initialize notes from localStorage if exist or empty array
-  // Using React Lazy State Initialization to not initialize everytime App Renders.
-  const [notes, setNotes] = useState(() => JSON.parse(localStorage.getItem("notes")) || [])
-
-  // Set current note ID to first note's ID or empty string (using optional chaining)
-  const [currentNoteId, setCurrentNoteId] = useState(notes[0]?.id || "")
+  // Initializing notes as empty array
+  const [notes, setNotes] = useState([])
+  // Initializing currentNoteId as empty string
+  const [currentNoteId, setCurrentNoteId] = useState("")
+  // Initializing tempNoteText state to prevent note state to be updated on every change
+  const [tempNoteText, setTempNoteText] = React.useState("")
 
   // Find the current note by ID or return the first note 
   const currentNote = notes.find(note => note.id === currentNoteId) || notes[0]
+  // Array to store recently-modified note at the top
+  const sortedNotes = notes.sort((a, b) => b.updatedAt - a.updatedAt)
 
-  // Update localStorage when notes state change
+  // Sync up our local notes array with the snapshot data on firestore db
   useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes))
+    const unsubscribe = onSnapshot(notesCollection, function (snapshot) {
+      const notesArr = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+      }))
+
+      setNotes(notesArr)
+    })
+
+    return unsubscribe
+  }, [])
+
+  // Checks if currentNoteId is not set, then sets it to notes[0].id
+  // Before setting checking notes array exist with optional chaining
+  useEffect(() => {
+    if (!currentNoteId)
+      setCurrentNoteId(notes[0]?.id)
   }, [notes])
 
-  // Create a new note with unique ID and default text
-  function createNewNote() {
+  // Sets the tempNoteText to the body of the currentNote whenever it changes
+  useEffect(() => {
+    if (currentNote) {
+      setTempNoteText(currentNote.body)
+    }
+  }, [currentNote])
+
+  // Create an effect that runs any time the tempNoteText changes
+  // Delay the sending of the request to Firebase
+  // Use setTimeout
+  // Use clearTimeout to cancel the timeout
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (tempNoteText !== currentNote.body) {
+        updateNote(tempNoteText)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [tempNoteText])
+
+
+  // Create a new note with default text, firebase takes care to create a unique Id.
+  async function createNewNote() {
     const newNote = {
-      id: nanoid(),
-      body: "# Type your markdown note's title here"
+      body: "# Type your markdown note's title here",
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     }
 
-    setNotes(prevNotes => [...prevNotes, newNote])
-    setCurrentNoteId(newNote.id)
+    const newNoteRef = await addDoc(notesCollection, newNote)
+    setCurrentNoteId(newNoteRef.id)
   }
 
-  function deleteNote(event, noteId) {
-    event.stopPropagation()
-
-    setNotes(oldNotes => {
-      return oldNotes.filter(oldNote => oldNote.id != noteId)
-    })
+  // Delete the note from firebase DB
+  async function deleteNote(noteId) {
+    const docRef = doc(db, "notes", noteId)
+    await deleteDoc(docRef)
   }
 
-  // Update the body of the current note
-  // Put the most recently-modified note at the top
-  function updateNote(text) {
-    setNotes(oldNotes => {
-      const newArray = []
-
-      oldNotes.forEach(oldNote => {
-        if (oldNote.id === currentNoteId)
-          newArray.unshift({ ...oldNote, body: text })
-        else
-          newArray.push(oldNote)
-      })
-
-      return newArray
-    })
+  // Update the body of the current note in firebase DB
+  async function updateNote(text) {
+    const docRef = doc(db, "notes", currentNoteId)
+    await setDoc(docRef, { body: text, updatedAt: Date.now() }, { merge: true })
   }
 
   // Render the Main component
@@ -71,19 +103,15 @@ function App() {
           >
             <Sidebar
               newNote={createNewNote}
-              notes={notes}
+              notes={sortedNotes}
               currentNote={currentNote}
               setCurrentNoteId={setCurrentNoteId}
               deleteNote={deleteNote}
             />
-            {
-              currentNoteId &&
-              notes.length > 0 &&
-              <Editor
-                currentNote={currentNote}
-                updateNote={updateNote}
-              />
-            }
+            <Editor
+              tempNoteText={tempNoteText}
+              setTempNoteText={setTempNoteText}
+            />
           </Split>
           :
           // If there are no notes, render a message and a button to create a new note
